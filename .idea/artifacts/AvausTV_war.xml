@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="AvausTV:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="avaustv.war">
+      <element id="artifact" artifact-name="AvausTV:war exploded" />
+    </root>
+  </artifact>
+</component>

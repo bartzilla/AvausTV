@@ -21,18 +21,18 @@ import com.avaus.domain.chanelpackages.GossipsPackage;
 import com.avaus.domain.chanelpackages.MoviesPackage;
 import com.avaus.domain.chanelpackages.SportsPackage;
 import com.avaus.services.exceptions.InvalidAccountNumberException;
+import com.avaus.services.exceptions.TechnicalFailureException;
 import com.avaus.services.impl.PrizeServiceImpl;
 import com.avaus.strategies.AwardStrategy;
 
 /**
- * Unit Test for PrizeService 
- *
- *  @author Cipriano Sanchez
+ * Created by cipriano.sanchez on 02/03/14.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class PrizeServiceTest
 {
     private static final String ACCOUNT_NUMBER = "12345";
+    private static final String INVALID_ACCOUNT_NUMBER = "";
     private List<Prize> sportPrizes = new ArrayList<>();
     private List<Prize> moviePrizes = new ArrayList<>();
     private Prize sportPrize1;
@@ -86,7 +86,6 @@ public class PrizeServiceTest
         assertTrue(prizesForCustomer.size() == sportPrizes.size());
         assertTrue(prizesForCustomer.contains(sportPrize1));
         assertTrue(prizesForCustomer.contains(sportPrize2));
-
     }
 
     @Test
@@ -119,6 +118,46 @@ public class PrizeServiceTest
         assertTrue(prizesForCustomer.size() == moviePrizes.size());
         assertTrue(prizesForCustomer.contains(moviePrize1));
         assertTrue(prizesForCustomer.contains(moviePrize2));
+    }
+
+    @Test
+    public void testMoviePrizesOnGossipAndMoviesPackage() throws InvalidAccountNumberException
+    {
+        final Customer customer = new Customer(ACCOUNT_NUMBER,
+                channelPackageListBuilder(new GossipsPackage(movieAwardStrategy), new MoviesPackage(movieAwardStrategy)));
+
+        Mockito.when(eligibilityService.getEligibilityStatus(customer.getAccountNumber())).thenReturn(true);
+
+        final List<Prize> prizesForCustomer = prizeService.getPrizesForCustomer(customer.getAccountNumber(), customer.getChannelPackages());
+
+        assertNotNull(prizesForCustomer);
+        assertTrue(prizesForCustomer.size() == 2);
+    }
+
+    @Test(expected = InvalidAccountNumberException.class)
+    public void testEmptyAccountNumber() throws InvalidAccountNumberException
+    {
+        final Customer customer = new Customer(ACCOUNT_NUMBER,
+                channelPackageListBuilder(new GossipsPackage(movieAwardStrategy)));
+
+        Mockito.when(eligibilityService.getEligibilityStatus(INVALID_ACCOUNT_NUMBER)).thenThrow(new InvalidAccountNumberException());
+
+        prizeService.getPrizesForCustomer(INVALID_ACCOUNT_NUMBER, customer.getChannelPackages());
+    }
+
+    @Test
+    public void testTechnicalFailureException() throws InvalidAccountNumberException
+    {
+         final Customer customer = new Customer(ACCOUNT_NUMBER,
+                channelPackageListBuilder(new GossipsPackage(movieAwardStrategy)));
+
+        Mockito.when(eligibilityService.getEligibilityStatus(INVALID_ACCOUNT_NUMBER)).thenThrow(new TechnicalFailureException());
+
+        final List<Prize> prizesForCustomer = prizeService.getPrizesForCustomer(INVALID_ACCOUNT_NUMBER, customer.getChannelPackages());
+
+        assertNotNull(prizesForCustomer);
+        assertTrue(prizesForCustomer.isEmpty());
+
     }
 
     private List<ChannelPackage> channelPackageListBuilder(final ChannelPackage... packages)

@@ -1,7 +1,9 @@
 package com.avaus.services.impl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -26,7 +28,7 @@ public class PrizeServiceImpl implements PrizeService
     public List<Prize> getPrizesForCustomer(final String accountNumber, final List<ChannelPackage> channelPackages)
             throws InvalidAccountNumberException
     {
-        List<Prize> prizeList = new ArrayList<>();
+        Set<Prize> prizeSet = new HashSet<>();
 
         try
         {
@@ -34,7 +36,7 @@ public class PrizeServiceImpl implements PrizeService
             {
                 if (eligibilityService.getEligibilityStatus(accountNumber))
                 {
-                    prizeList.addAll(channelPackage.getPrizes());
+                    prizeSet.addAll(channelPackage.getPrizes());
                 }
             }
         }
@@ -43,7 +45,7 @@ public class PrizeServiceImpl implements PrizeService
             return new ArrayList<>();
         }
 
-        return prizeList;
+        return new ArrayList<>(prizeSet);
     }
 
 }
